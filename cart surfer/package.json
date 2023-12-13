@@ -1,0 +1,15 @@
+{
+  "name": "@meybesomeday/cart-surfer",
+  "version": "0.0.1",
+  "description": "JS port of cart surfer minigame from the original Club Pengun web game.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/meybesomeday/meyCPL"
+  },
+  "author": "Mey",
+  "license": "ISC"
+}
