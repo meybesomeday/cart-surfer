@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Cart Surfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
     <link rel="apple-touch-icon" sizes="180x180" href="dist/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="dist/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="dist/favicon-16x16.png" />
@@ -10,7 +11,51 @@
     <meta name="application-name" content="Cart Surfer" />
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
     <script type="module" src="main.js"></script>
+
+    <style>
+        body {
+            background-color: #22A4F3;
+        }
+
+        canvas {
+            display: block;
+            margin: auto;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border: none;
+            padding: 15px 32px;
+            margin: auto;
+            text-align: center;
+            justify-content: center;
+            display: inline-block;
+        }
+        .disclaimer {
+            padding: 10px;
+            font-family: Cambria, Arial;
+            font-size: 1rem;
+            color: white;
+        }
+        .fa-github {
+            padding: 10px;
+            font-size: 1.5rem;
+            color: black;
+        }
+    </style>
 </head>
 <body>
+    <div class="footer">
+        <div class="disclaimer">
+            MeyCPL is a private collection of various recreations from Disney's Club Penguin.
+            <br>
+            It is not at all affiliated with Disney, Club Penguin, or any other private recreations.
+        </div>
+        <div class="links">
+            <a class="fa fa-github" href="https://github.com/meybesomeday/meyCPL" target="_blank"></a>
+        </div>
+    </div>
 </body>
 </html>
