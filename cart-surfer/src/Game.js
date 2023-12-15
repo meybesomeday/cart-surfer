@@ -5,10 +5,19 @@ export default class Game extends Phaser.Scene
         super("Game");
     }
 
+    preload()
+    {
+        this.input.setDefaultCursor("default");
+    }
+
     create()
     {
-        this.mine = this.add.sprite(380, 240, "Mine"); // why won't this work. even if I load and add the sheet as an image with no anims it just shows black. help.
-        this.cart = this.add.sprite(380, 240, "Cart");
+        const width = 380;
+        const height = 240;
+        this.mine = this.add.sprite(width, height, "Mine"); // TODO: replace all vertical spritesheets with packed spritesheets in Aseprite
+        this.cart = this.add.image(270, 320, "Cart"); // TODO: figure out positioning of all cart sprites in scene
+        this.wobble = this.add.sprite(270, 320, "Wobble");
+        this.wobble.visible = false;
 
         this.anims.create({
             key: "MineStraight",
@@ -18,8 +27,8 @@ export default class Game extends Phaser.Scene
         });
 
         this.anims.create({
-            key: "CartRun",
-            frames: this.anims.generateFrameNumbers("Cart", { start: 0, end: 39 }),
+            key: "CartWobble",
+            frames: this.anims.generateFrameNumbers("Wobble", { start: 0, end: 39 }),
             framerate: 30,
             repeat: -1
         });
@@ -29,6 +38,6 @@ export default class Game extends Phaser.Scene
     update()
     {
         this.mine.anims.play("MineStraight", true);
-        this.cart.anims.play("CartRun", true);
+        // this.cart.anims.play("CartWobble", true);
     }
 }
