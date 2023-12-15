@@ -15,7 +15,7 @@ export default class Preload extends Phaser.Scene
         this.load.image("instructionsButton", "sprites/Sprite_452/1.png");
         this.load.image("instructionsPlayButton", "sprites/Sprite_453/1.png");
 
-        this.load.spritesheet("Mine", "sprites/Sprite_26/sheet.png", { frameWidth: 1637, frameHeight: 1235 });
+        this.load.spritesheet("Mine", "sprites/Sprite_326/sheet.png", { frameWidth: 760, frameHeight: 480 });
         this.load.spritesheet("Cart", "sprites/Sprite_59/sheet.png", { frameWidth: 326, frameHeight: 260 });
     }
 

@@ -7,13 +7,13 @@ export default class Game extends Phaser.Scene
 
     create()
     {
-        this.mine = this.add.sprite(0, 0, "Mine").setOrigin(457, 138); // Something about the position, origin, or size of the image here is pushing it off-screen. I may need to adjust the image itself.
-        this.cart = this.add.sprite(360, 240, "Cart");
+        this.mine = this.add.sprite(380, 240, "Mine"); // why won't this work. even if I load and add the sheet as an image with no anims it just shows black. help.
+        this.cart = this.add.sprite(380, 240, "Cart");
 
         this.anims.create({
             key: "MineStraight",
-            frames: this.anims.generateFrameNumbers("Mine", { start: 0, end: 47 }),
-            framerate: 60,
+            frames: this.anims.generateFrameNumbers("Mine", { start: 0, end: 25 }),
+            framerate: 1,
             repeat: -1
         });
 
@@ -23,6 +23,7 @@ export default class Game extends Phaser.Scene
             framerate: 30,
             repeat: -1
         });
+        PhaserGUIAction(this);
     }
 
     update()
