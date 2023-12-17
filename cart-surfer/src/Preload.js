@@ -15,10 +15,12 @@ export default class Preload extends Phaser.Scene
         this.load.image("instructionsButton", "sprites/Sprite_452/1.png");
         this.load.image("instructionsPlayButton", "sprites/Sprite_453/1.png");
 
-        this.load.spritesheet("Mine", "sprites/Sprite_26/sheet.png", { frameWidth: 760, frameHeight: 480 }); // TODO: consider texture atlases for mine and cart
+        this.load.spritesheet("MineStraight", "sprites/Sprite_26/sheet.png", { frameWidth: 760, frameHeight: 480 });
+        this.load.spritesheet("MineTurn", "sprites/Sprite_326/sheet.png", { frameWidth: 760, frameHeight: 480 });
+        this.load.spritesheet("MineTurnSigns", "sprites/Sprite_329/sheet.png", { frameWidth: 760, frameHeight: 480 });
+        this.load.spritesheet("MineEnd", "sprites/Sprite_333/sheet.png", { frameWidth: 760, frameHeight: 480 });
 
-        this.load.image("Cart", "sprites/Sprite_35/sheet.png");
-        this.load.spritesheet("Wobble", "sprites/Sprite_59/sheet.png", { frameWidth: 326, frameHeight: 260 });
+        this.load.multiatlas("Cart", "sprites/cart/cart.json", "assets/sprites/cart");
     }
 
     create ()
