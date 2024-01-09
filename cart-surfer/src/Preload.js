@@ -15,11 +15,10 @@ export default class Preload extends Phaser.Scene
         this.load.image("instructionsButton", "sprites/Sprite_452/1.png");
         this.load.image("instructionsPlayButton", "sprites/Sprite_453/1.png");
 
-        this.load.spritesheet("MineStraight", "sprites/Sprite_26/sheet.png", { frameWidth: 760, frameHeight: 480 });
-        this.load.spritesheet("MineTurn", "sprites/Sprite_326/sheet.png", { frameWidth: 760, frameHeight: 480 });
-        this.load.spritesheet("MineTurnSigns", "sprites/Sprite_329/sheet.png", { frameWidth: 760, frameHeight: 480 });
-        this.load.spritesheet("MineEnd", "sprites/Sprite_333/sheet.png", { frameWidth: 760, frameHeight: 480 });
+        // TODO game over screen to create in Game scene and make visible at game over
+        // PLANNED modify the Menu scene to add custom options and gamemodes
 
+        this.load.multiatlas("Mine", "sprites/mine/mine.json", "assets/sprites/mine");
         this.load.multiatlas("Cart", "sprites/cart/cart.json", "assets/sprites/cart");
     }
 

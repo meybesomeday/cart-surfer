@@ -1,4 +1,4 @@
-let debug = false
+let debug = false;
 
 export default class Game extends Phaser.Scene
 {
@@ -7,8 +7,6 @@ export default class Game extends Phaser.Scene
         super("Game");
 
         this.gameOverCalled = false;
-        this.isGameOver = false;
-        this.isCrashed = false;
         this.myLives = 4;
         this.myScore = 0;
         this.screenScore = 0;
@@ -27,24 +25,16 @@ export default class Game extends Phaser.Scene
             lean: 10
         };
 
-        this.stanceCounter = 0;
-        this.maxStanceCounter = 24;
-        this.isStanceCounterUsed = false;
-        this.stance = "none";
-        this.returnFrames = {
-            none: "CartStraight",
-            surfing: "CartSurfingStance",
-            wheelie: "CartWheelieStance",
-            jump: "CartJump"
-        };
+        this.isStraight = true; // couldn't be me // THIS ISN'T ANYWHERE ELSE IN THE CODE SO I HAVE TO TAKE THIS JOKE OUT NOOOOOO
+                                // oh well it's my code, so I'll leave it in for one commit so I can hold onto it's memory
+                                // TODO remove this from existence.
 
-        this.isTrick = false;
-        this.trick = undefined;
-        this.spinDir = "none";
-        this.lastTrick = undefined;
-        this.isStraight = true; // couldn't be me
-        this.numTricks = 0;
-        this.numTricksInCart = 0;
+
+        this.maxCounter = {
+            GrindMove: 28,
+            SlideMove: 32,
+            Move: 38
+        };
         this.numTricksOutCart = 0;
         this.numUniqueTricks = 0;
         this.numGrindCorners = 0;
@@ -60,29 +50,20 @@ export default class Game extends Phaser.Scene
         //     running: "none"
         // };
         
-        this.isMove = false;
-        this.move = undefined;
-        this.moveCounter = 0;
-        this.maxCounter = {
-            GrindMove: 28,
-            SlideMove: 32,
-            Move: 38
-        };
-        this.wobbling = false;
 
-        this.mineSegments = [["MineStraight", /*flipped=*/false], ["MineTurn", false], ["MineTurn", true], ["MineTurnSigns", false], ["MineTurnSigns", true], ["MineEnd", false]];
-        let mineHolder = [
+        const mineHolder = [
             [1,1,4,2,1,5,3,1,1,4,2,5,3,1,1,1,4,2,4,2,1,1,5,3,5,3,1,1,6],
             [1,1,5,3,1,4,2,5,3,1,4,2,1,1,1,4,2,1,5,3,4,2,1,1,5,3,1,1,6],
             [1,1,1,5,3,1,1,1,4,2,1,4,2,1,5,3,4,2,1,5,3,1,4,2,5,3,1,1,6],
             [1,1,5,3,1,4,2,1,1,4,2,1,5,3,1,4,2,5,3,5,3,1,1,4,2,4,2,1,1,6],
             [1,1,1,5,3,4,2,1,4,2,1,1,5,3,1,5,3,4,2,1,5,3,1,1,4,2,1,1,6]
         ];
+        this.mineArray = mineHolder[Math.floor(Math.random() * 5)];
+        this.mineSegments = [];
+        console.log(this.mineArray);
 
-        this.isCorner = false;
-        this.mySeg = 0;
+        this.mySeg = 0; 
         this.myLastSafeSeg = 0;
-        this.currentSeg = this.myLastSafeSeg
     }
 
     preload()
@@ -100,15 +81,69 @@ export default class Game extends Phaser.Scene
         if (debug) this.cart2.alpha = 0.3;
 
         this.cartAnims = {};
+        this.mineAnims = [];
         this.#generateAnims();
-        this.play = true;
         this.wKey = this.input.keyboard.addKey("S");
         this.downKey = this.input.keyboard.addKey("DOWN");
         this.paused = false;
+        
+        this.startGame();
+        this.mine.anims.play("MineStraight", true);
+
+        if (debug) PhaserGUIAction(this);
+    }
+
+    update()
+    {
+        if (!this.isCrashed)
+        {
+            if (this.isMove && !this.isCorner)
+            {
+                this.moveCounter += 1;
+                if (this.moveCounter > this.maxCounter.Move)
+                {
+                    //this.isCrashed = true;
+                    //reduceLives();
+                    //this.stopGame();
+                    //if (this.)
+                }
+            }
+            if (this.isCorner)
+            {
+                if (this.isTrick) this.crash();
+                else {
+                    if (this.mineArray[this.currentSeg] == 2 && this.turnDirection != "right") this.crash();
+                    else if (this.mineArray[this.currentSeg] == 3 && this.turnDirection != "left") this.crash();
+                }
+            }
+        }
+    }
+
+    startGame()
+    {
+        
+        this.isGameOver = false;
+        this.isCrashed = false;
+        this.stance = "none";
+
+        this.isTrick = false;
+        this.trick = undefined;
+        this.spinDir = "none";
+        this.lastTrick = undefined;
+        this.numTricksInCart = 0; 
+        this.isMove = false;
+        this.move = undefined;
+        this.moveCounter = 0;
+        this.wobbling = false;
+        this.isCorner = false;
+        this.currentSeg = this.myLastSafeSeg
+        this.input.keyboard.removeAllListeners();
         this.input.keyboard.on('keydown', function (ev) {
             let key = ev.key;
             let scene = this.scene;
             if (key == "0") scene.paused = !scene.paused;
+            if (key == "a" || key == "ArrowLeft") scene.turnDirection = "left";
+            if (key == "d" || key == "ArrowRight") scene.turnDirection = "right";
             if (!scene.isTrick && !scene.isCrashed && ev.repeat == false)
             {
                 if (scene.stance == "surfing")
@@ -239,11 +274,12 @@ export default class Game extends Phaser.Scene
         })
         this.input.keyboard.on("keyup", function(ev) {
             let scene = this.scene;
-            if (!scene.isCrashed)
+            if (!scene.isCrashed && !scene.paused)
             {
                 if (scene.move == "grind" | scene.move == "spin" | scene.move == "lean" | scene.move == "backflip") scene.noStance();
                 if (scene.move == "slide") scene.cartAnims.CartSurfingStance.play();
                 scene.stopMove();
+                this.turnDirection = undefined;
             }
         })
         this.cart.on("animationcomplete", function(anim) {
@@ -258,13 +294,15 @@ export default class Game extends Phaser.Scene
                     case "wheelie":
                         if (scene.wKey.isDown || scene.downKey.isDown) scene.cartAnims.CartWheelieStance.play({chain:true});
                         else { scene.cartAnims.CartStraight.play({chain:true}); scene.noStance(); }
+                        if (!scene.isCorner && (anim.key == "CartGrindLeft" || anim.key == "CartGrindRight")) scene.crash();
                         break;
                     case "jumping":
                         scene.noStance();
                         scene.cartAnims.CartStraight.play({chain:true});
                         break;
                     case "none":
-                        scene.cartAnims.CartStraight.play({chain:true});
+                        if (!scene.isCorner && (anim.key == "CartLeanLeft" || anim.key == "CartLeanRight")) scene.crash();
+                        else scene.cartAnims.CartStraight.play({chain:true});
                         break;
                 }
             }
@@ -273,32 +311,36 @@ export default class Game extends Phaser.Scene
             let scene = this.scene;
             if (scene.paused) {scene.cart.anims.stop(); return; }
         })
-
-        PhaserGUIAction(this);
-    }
-
-    update()
-    {
-        if (this.play == true) {
-            this.mine.anims.play("MineStraight", true);
-            this.cartAnims.CartStart.play();
-            if (debug) this.cartAnims.CartStart.play({sprite:this.cart2});
-            this.play = false;
-        }
-        if (!this.isCrashed)
-        {
-            if (this.isMove && !this.isCorner)
-            {
-                this.moveCounter += 1;
-                if (this.moveCounter > this.maxCounter.Move)
-                {
-                    //this.isCrashed = true;
-                    //reduceLives();
-                    //this.stopGame();
-                    //if (this.)
-                }
+        this.cart.on("animationupdate", function(anim, frame, sprite, key) {
+            let scene = this.scene;
+            //if (scene.paused) {scene.cart.anims.stop(); scene.mine.anims.stop(); return; }
+            if (anim.key == "CartOlie" && key == "Sprite_101_20.png") scene.stopTrick();
+            else if (anim.key == "CartSlideLeft" && scene.isCorner && key == "Sprite_122_21.png") scene.cart.anims.setCurrentFrame(anim.getFrameAt(3));
+            else if (anim.key == "CartSlideLeft" && !scene.isCorner && key == "Sprite_122_32.png") scene.crash();
+            else if (anim.key == "CartSlideRight" && scene.isCorner && key == "Sprite_139_23.png") scene.cart.anims.setCurrentFrame(anim.getFrameAt(3));
+            else if (anim.key == "CartSlideRight" && !scene.isCorner && key == "Sprite_139_32.png") scene.crash();
+            else if (anim.key == "CartJump" && key == "Sprite_225_21.png") scene.noStance();
+            else if (anim.key == "CartFlapWings" && key == "Sprite_251_27.png") scene.stopTrick();
+            else if (anim.key == "CartHandstand" && key == "Sprite_268_17.png") scene.stopTrick();
+        })
+        this.mine.on("animationcomplete", function(anim) {
+            let scene = this.scene;
+            if (anim.key != "MineEnd") scene.nextSeg();
+            else scene.gameOver();
+        })
+        this.mine.on("animationupdate", function(anim, frame, sprite, key) {
+            let scene = this.scene;
+            if ((anim.key == "MineTurnRight" || anim.key == "MineTurnLeft") && (key == "Sprite_326_10.png")) {
+                scene.isCorner = true;
             }
-        }
+            if ((anim.key == "MineTurnRight" || anim.key == "MineTurnLeft") && (key == "Sprite_326_22.png")) {
+                scene.stopCorner();
+            }
+        })
+
+        this.cartAnims.CartStart.play();
+        if (debug) this.cartAnims.CartStart.play({sprite:this.cart2});
+
     }
 
     stopTrick()
@@ -309,16 +351,19 @@ export default class Game extends Phaser.Scene
             this.stance = (this.trick == "olie" || this.trick == "handstand") ? "surfing" : "none";
             if (this.trick == "backflip") this.numFlipsInRow++;
             else this.numFlipsInRow = 0;
+            // TODO points
             this.lastTrick = this.trick;
             this.trick = undefined;
             this.numTricks += 1;
         }
+        this.wobbling = false;
     }
 
     stopMove()
     {
         if (this.isMove)// && !this.isCrashed && (this.moveCounter > 10 || this.bonusPoints > 0))
         {
+            // TODO points
             this.isMove = false;
             this.moveCounter = 0;
             this.move = undefined;
@@ -337,12 +382,66 @@ export default class Game extends Phaser.Scene
         this.cartAnims.CartStraight.play();
     }
 
+    nextSeg()
+    {
+        if (this.mineArray[this.currentSeg] == 1) {
+            this.myLastSafeSeg = this.currentSeg;
+        }
+        if (this.isCrashed || this == undefined || this.isGameOver) {
+            this.currentSeg = this.myLastSafeSeg;
+        }
+        else {
+            this.currentSeg++;
+        }
+        console.log(this.currentSeg);
+        this.mineAnims[this.mineArray[this.currentSeg]-1].play({chain:true});
+    }
+
+    stopCorner()
+    {
+        this.isCorner = false;
+        if (!this.isCrashed) {
+            // TODO points
+        }
+    }
+
+    crash()
+    {
+        this.numFlipsInRow = 0;
+        this.isCrashed = true;
+        this.cartAnims.CartCrash.play();
+        this.reduceLives();
+        this.stopGame();
+    }
+
+    reduceLives()
+    {
+        this.myLives -= 1;
+        // TODO lives sprite
+    }
+
+    stopGame()
+    {
+        if (!this.isGameOver) {
+            if (this.myLives > 0) {
+                this.input.keyboard.removeAllListeners();
+                this.input.keyboard.on("keydown-SPACE", () => this.startGame())
+            }
+        }
+        else {
+            this.gameOver();
+        }
+    }
+
     gameOver()
     {
         if (!this.gameOverCalled)
         {
             this.gameOverCalled = true;
             this.isGameOver = true;
+            this.input.keyboard.removeAllListeners();
+            this.cart.removeAllListeners();
+            this.mine.removeAllListeners();
         }
     }
 
@@ -352,23 +451,24 @@ export default class Game extends Phaser.Scene
         if (posY) sprite.setY(posY);
         if (!(displayWidth && displayHeight)) sprite.setScale(1, 1);
         else sprite.setDisplaySize(displayWidth, displayHeight);
-        sprite.FlipX = flipX;
-        sprite.FlipY = flipY;
-        if (chain == true) sprite.anims.chain(name,ignoreIfPlaying);
+        sprite.setFlip(flipX, flipY);
+        if (chain == true) sprite.anims.chain(name, ignoreIfPlaying);
         else sprite.anims.play(name, ignoreIfPlaying);
     }
 
-    #animCreator(name="CartDefault", sheet="Cart", spritenum=0, count=1, ...{...params})
+    #animCreator(name="CartDefault", sheet="Cart", spriteid=0, start=1, count=1, ...{...params})
     {
         this.anims.create({
             key: name,
-            frames: this.anims.generateFrameNames(sheet, { prefix: "Sprite_"+spritenum+"_", suffix: ".png", start: 1,  end: count }),
-            frameRate: 30,
+            frames: this.anims.generateFrameNames(sheet, { prefix: "Sprite_"+spriteid+"_", suffix: ".png", start: start,  end: count }),
+            frameRate: 24,
             repeat: 0
         });
-        if (sheet == "Cart" && params[0] != undefined)
+        if (params[0] != undefined)
         {
-            let item = this.cartAnims[name] = {};
+            let item;
+            if (sheet == "Cart") item = this.cartAnims[name] = {};
+            else if (sheet == "Mine") item = this.mineAnims[this.mineAnims.push({})-1];
             item.params = params[0];
             if (item.params != undefined) item.params.name = name;
             item.play = (...{...params}) => {
@@ -381,51 +481,33 @@ export default class Game extends Phaser.Scene
 
     #generateAnims()
     {
-        this.anims.create({
-            key: "MineStraight",
-            frames: this.anims.generateFrameNumbers("MineStraight", { start: 0, end: 47 }),
-            framerate: 1,
-            repeat: -1
-        });
-        this.anims.create({
-            key: "MineTurn",
-            frames: this.anims.generateFrameNumbers("MineTurn", { start: 0, end: 25 }),
-            framerate: 1,
-            repeat: 0
-        });
-        this.anims.create({
-            key: "MineTurnSigns",
-            frames: this.anims.generateFrameNumbers("MineTurnSigns", { start: 0, end: 47 }),
-            framerate: 1,
-            repeat: 0
-        });
-        this.anims.create({
-            key: "MineEnd",
-            frames: this.anims.generateFrameNumbers("MineEnd", { start: 0, end: 27 }),
-            framerate: 1,
-            repeat: 0
-        });
-        this.#animCreator("CartStraight", "Cart", 35, 1, {sprite:this.cart, posX:381, posY:352});
-        this.#animCreator("CartLeanLeft", "Cart", 59, 40, {sprite:this.cart, posX:273, posY:323});
-        this.#animCreator("CartLeanRight", "Cart", 60, 40, {sprite:this.cart, posX:272, posY:323, flipX:true});
-        this.#animCreator("CartSurfing", "Cart", 84, 17, {sprite:this.cart, posX:372, posY:321});
-        this.#animCreator("CartSurfingStance", "Cart", 85, 9, {sprite:this.cart, posX:379, posY:328});
-        this.#animCreator("CartOlie", "Cart", 101, 20, {sprite:this.cart, posX:380, posY:274});
-        this.#animCreator("CartSlideLeft", "Cart", 122, 41, {sprite:this.cart, posX:298, posY:312});
-        this.#animCreator("CartSlideRight", "Cart", 139, 41, {sprite:this.cart, posX:501, posY:326});
-        this.#animCreator("CartWheelie", "Cart", 150, 25, {sprite:this.cart, posX:381, posY:364});
-        this.#animCreator("CartWheelieStance", "Cart", 151, 23, {sprite:this.cart, posX:381, posY:370});
-        this.#animCreator("CartBackflip", "Cart", 174, 25, {sprite:this.cart, posX:381, posY:308});
-        this.#animCreator("CartGrindLeft", "Cart", 198, 28, {sprite:this.cart, posX:382, posY:397});
-        this.#animCreator("CartGrindRight", "Cart", 212, 27, {sprite:this.cart, posX:382, posY:397, flipX:true});
-        this.#animCreator("CartJump", "Cart", 225, 25, {sprite:this.cart, posX:383, posY:302});
-        this.#animCreator("Cart360Left", "Cart", 249, 21, {sprite:this.cart, posX:384, posY:304});
-        this.#animCreator("Cart360Right", "Cart", 250, 21, {sprite:this.cart, posX:384, posY:304, flipX:true});
-        this.#animCreator("CartFlapWings", "Cart", 251, 30, {sprite:this.cart, posX:380, posY:310});
-        this.#animCreator("CartHandstand", "Cart", 268, 24, {sprite:this.cart, posX:381, posY:317});
-        this.#animCreator("CartSlam", "Cart", 279, 7, {sprite:this.cart, posX:398, posY:337});
-        this.#animCreator("CartRunWithCart", "Cart", 295, 22, {sprite:this.cart, posX:381, posY:245}); // not perfect position since I don't have a perfect reference
-        this.#animCreator("CartCrash", "Cart", 302, 24, {sprite:this.cart, posX:381, posY:352}); //todo
-        this.#animCreator("CartStart", "Cart", 304, 28, {sprite:this.cart, posX:374, posY:606});
+        this.#animCreator("MineStraight", "Mine", 26, 0, 47, {sprite:this.mine, posX:380, posY:240});
+        this.#animCreator("MineTurnRight", "Mine", 326, 0, 25, {sprite:this.mine, posX:380, posY:240});
+        this.#animCreator("MineTurnLeft", "Mine", 326, 0, 25, {sprite:this.mine, posX:380, posY:240, flipX:true});
+        this.#animCreator("MineTurnSignsRight", "Mine", 329, 0, 47, {sprite:this.mine, posX:380, posY:240});
+        this.#animCreator("MineTurnSignsLeft", "Mine", 329, 0, 47, {sprite:this.mine, posX:380, posY:240, flipX:true});
+        this.#animCreator("MineEnd", "Mine", 333, 0, 27, {sprite:this.mine, posX:380, posY:240});
+        this.#animCreator("CartStraight", "Cart", 35, 1, 1, {sprite:this.cart, posX:381, posY:352});
+        this.#animCreator("CartLeanLeft", "Cart", 59, 1, 40, {sprite:this.cart, posX:273, posY:323});
+        this.#animCreator("CartLeanRight", "Cart", 60, 1, 40, {sprite:this.cart, posX:491, posY:323, flipX:true});
+        this.#animCreator("CartSurfing", "Cart", 84, 1, 17, {sprite:this.cart, posX:372, posY:321});
+        this.#animCreator("CartSurfingStance", "Cart", 85, 1, 9, {sprite:this.cart, posX:379, posY:328});
+        this.#animCreator("CartOlie", "Cart", 101, 1, 20, {sprite:this.cart, posX:380, posY:274});
+        this.#animCreator("CartSlideLeft", "Cart", 122, 1, 41, {sprite:this.cart, posX:298, posY:312});
+        this.#animCreator("CartSlideRight", "Cart", 139, 1, 41, {sprite:this.cart, posX:501, posY:326});
+        this.#animCreator("CartWheelie", "Cart", 150, 1, 25, {sprite:this.cart, posX:381, posY:364});
+        this.#animCreator("CartWheelieStance", "Cart", 151, 1, 23, {sprite:this.cart, posX:381, posY:370});
+        this.#animCreator("CartBackflip", "Cart", 174, 1, 21, {sprite:this.cart, posX:381, posY:308});
+        this.#animCreator("CartGrindLeft", "Cart", 198, 1, 28, {sprite:this.cart, posX:382, posY:397});
+        this.#animCreator("CartGrindRight", "Cart", 212, 1, 27, {sprite:this.cart, posX:382, posY:397, flipX:true});
+        this.#animCreator("CartJump", "Cart", 225, 1, 25, {sprite:this.cart, posX:383, posY:302});
+        this.#animCreator("Cart360Left", "Cart", 249, 1, 17, {sprite:this.cart, posX:384, posY:304});
+        this.#animCreator("Cart360Right", "Cart", 250, 1, 17, {sprite:this.cart, posX:379, posY:304, flipX:true});
+        this.#animCreator("CartFlapWings", "Cart", 251, 1, 30, {sprite:this.cart, posX:380, posY:310});
+        this.#animCreator("CartHandstand", "Cart", 268, 1, 24, {sprite:this.cart, posX:381, posY:317});
+        this.#animCreator("CartSlam", "Cart", 279, 1, 7, {sprite:this.cart, posX:398, posY:337});
+        this.#animCreator("CartRunWithCart", "Cart", 295, 1, 22, {sprite:this.cart, posX:381, posY:245}); // not perfect position since I don't have a perfect reference
+        this.#animCreator("CartCrash", "Cart", 302, 1, 24, {sprite:this.cart, posX:381, posY:352}); //todo
+        this.#animCreator("CartStart", "Cart", 304, 1, 28, {sprite:this.cart, posX:374, posY:606});
     }
 }
