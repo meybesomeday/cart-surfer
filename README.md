@@ -11,4 +11,4 @@ meyCPL is a private collection of Club Penguin inspired projects. It not in any 
 Cart Surfer
 -----------------
 Github Pages:
-https://meybesomeday.github.io/meyCPL/cart-surfer/index.html
+https://meybesomeday.github.io/cart-surfer/cart-surfer/index.html
