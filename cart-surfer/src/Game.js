@@ -280,7 +280,7 @@ export default class Game extends Phaser.Scene
     update()
     {
         if (this.play == true) {
-            //this.mine.anims.play("MineStraight", true);
+            this.mine.anims.play("MineStraight", true);
             this.cartAnims.CartStart.play();
             if (debug) this.cartAnims.CartStart.play({sprite:this.cart2});
             this.play = false;
